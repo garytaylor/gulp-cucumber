@@ -78,7 +78,7 @@ var cucumber = function(options) {
             });
         } else {
             cucumberPath = path.resolve(require.resolve('cucumber'), '../../bin/cucumber.js');
-            child = exec(process.execPath + ' ' + cucumberPath, function (err) {
+            child = exec(process.execPath + ' ' + cucumberPath + ' ' + argv.slice(2).join(' '), function (err) {
                 if (err) {
                     stream.emit('error', new PluginError('gulp-cucumber', {
                         message: 'Gulp Cucumber failed',
