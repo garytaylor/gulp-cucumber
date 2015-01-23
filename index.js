@@ -8,7 +8,7 @@ var cucumber = function(options) {
     var files = [];
     var runOptions = [];
     var inProcess;
-    var excludeOptions = ['support', 'steps', 'format', 'inProcess'];    //As these are dealt with below
+    var excludeOptions = ['support', 'steps', 'format', 'inProcess', env];    //As these are dealt with below
     var option;
     if (options.support) {
         files = files.concat(glob([].concat(options.support)));
@@ -59,12 +59,20 @@ var cucumber = function(options) {
         var cucumberPath;
         var argv = ['node', 'cucumber-js'];
         var child;
+        var envVar;
+        var execOptions;
 
         argv.push.apply(argv, runOptions);
         argv.push.apply(argv, features);
 
         var stream = this;
         if (inProcess) {
+            if (options.env) {
+                for(envVar in options.env) {
+                    process.env[envVar] = options.env;
+                    //@TODO Tidy this up afterwards as we will have changed the global environment for this process
+                }
+            }
             Cucumber.Cli(argv).run(function(succeeded) {
                 if (succeeded) {
                     callback();
@@ -78,7 +86,11 @@ var cucumber = function(options) {
             });
         } else {
             cucumberPath = path.resolve(require.resolve('cucumber'), '../../bin/cucumber.js');
-            child = exec(process.execPath + ' ' + cucumberPath + ' ' + argv.slice(2).join(' '), function (err) {
+            execOptions = {};
+            if (options.env) {
+                execOptions.env = options.env;
+            }
+            child = exec(process.execPath + ' ' + cucumberPath + ' ' + argv.slice(2).join(' '), execOptions, function (err) {
                 if (err) {
                     stream.emit('error', new PluginError('gulp-cucumber', {
                         message: 'Gulp Cucumber failed',
