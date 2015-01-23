@@ -2,11 +2,13 @@ var Cucumber = require('cucumber');
 var glob = require('simple-glob');
 var through2 = require('through2');
 var PluginError = require('gulp-util').PluginError;
-
+var exec = require('child_process').exec;
+var path = require('path');
 var cucumber = function(options) {
     var files = [];
     var runOptions = [];
-    var excludeOptions = ['support', 'steps', 'format'];    //As these are dealt with below
+    var inProcess;
+    var excludeOptions = ['support', 'steps', 'format', 'inProcess'];    //As these are dealt with below
     var option;
     if (options.support) {
         files = files.concat(glob([].concat(options.support)));
@@ -15,6 +17,8 @@ var cucumber = function(options) {
     if (options.steps) {
         files = files.concat(glob([].concat(options.steps)));
     }
+
+    inProcess = (!options.hasOwnProperty('inProcess') || options.inProcess)
 
     files.forEach(function(file) {
         runOptions.push('-r');
@@ -52,23 +56,41 @@ var cucumber = function(options) {
     };
 
     var run = function(callback) {
+        var cucumberPath;
         var argv = ['node', 'cucumber-js'];
+        var child;
 
         argv.push.apply(argv, runOptions);
         argv.push.apply(argv, features);
 
         var stream = this;
-        Cucumber.Cli(argv).run(function(succeeded) {
-            if (succeeded) {
-                callback();
-                stream.emit('end');
-            } else {
-                stream.emit('error', new PluginError('gulp-cucumber', {
-                    message: 'Gulp Cucumber failed',
-                    showStack: false
-                }));
-            }
-        });
+        if (inProcess) {
+            Cucumber.Cli(argv).run(function(succeeded) {
+                if (succeeded) {
+                    callback();
+                    stream.emit('end');
+                } else {
+                    stream.emit('error', new PluginError('gulp-cucumber', {
+                        message: 'Gulp Cucumber failed',
+                        showStack: false
+                    }));
+                }
+            });
+        } else {
+            cucumberPath = path.resolve(require.resolve('cucumber'), '../../bin/cucumber.js');
+            exec(process.execPath + ' ' + cucumberPath, function (err, stdout, stderr) {
+                if (err) {
+                    stream.emit('error', new PluginError('gulp-cucumber', {
+                        message: 'Gulp Cucumber failed',
+                        showStack: false
+                    }));
+                } else {
+                    callback();
+                    stream.emit('end');
+                }
+            });
+
+        }
     };
 
     return through2.obj(collect, run);
