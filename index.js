@@ -5,7 +5,8 @@ var through2 = require('through2');
 var cucumber = function(options) {
     var files = [];
     var runOptions = [];
-
+    var excludeOptions = ['support', 'steps', 'format'];    //As these are dealt with below
+    var option;
     if (options.support) {
         files = files.concat(glob([].concat(options.support)));
     }
@@ -18,6 +19,21 @@ var cucumber = function(options) {
         runOptions.push('-r');
         runOptions.push(file);
     });
+
+    // Pass on any other options to the command line as a switch with an optional value.
+    // to use a switch that does not need a value, use null as the value in the options object
+    for (option in options) {
+        if (excludeOptions.indexOf(option) === -1) {
+            if (option.length === 1) {
+                runOptions.push('-' + option);
+            } else {
+                runOptions.push('--' + option);
+            }
+            if (options[option] !== null) {
+                runOptions.push(options[option]);
+            }
+        }
+    }
 
     runOptions.push('-f');
     var format = options.format || 'pretty';
