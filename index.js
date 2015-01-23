@@ -1,6 +1,7 @@
 var Cucumber = require('cucumber');
 var glob = require('simple-glob');
 var through2 = require('through2');
+var PluginError = require('gulp-util').PluginError;
 
 var cucumber = function(options) {
     var files = [];
@@ -62,7 +63,10 @@ var cucumber = function(options) {
                 callback();
                 stream.emit('end');
             } else {
-                callback(new Error("Cucumber tests failed!"));
+                stream.emit('error', new PluginError('gulp-cucumber', {
+                    message: 'Gulp Cucumber failed',
+                    showStack: false
+                }));
             }
         });
     };
