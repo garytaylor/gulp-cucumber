@@ -8,7 +8,7 @@ var cucumber = function(options) {
     var files = [];
     var runOptions = [];
     var inProcess;
-    var excludeOptions = ['support', 'steps', 'format', 'inProcess', env];    //As these are dealt with below
+    var excludeOptions = ['support', 'steps', 'format', 'inProcess', 'env'];    //As these are dealt with below
     var option;
     if (options.support) {
         files = files.concat(glob([].concat(options.support)));
@@ -69,7 +69,7 @@ var cucumber = function(options) {
         if (inProcess) {
             if (options.env) {
                 for(envVar in options.env) {
-                    process.env[envVar] = options.env;
+                    process.env[envVar] = options.env[envVar];
                     //@TODO Tidy this up afterwards as we will have changed the global environment for this process
                 }
             }
