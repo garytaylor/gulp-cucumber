@@ -10,6 +10,7 @@ var cucumber = function(options) {
     var inProcess;
     var excludeOptions = ['support', 'steps', 'format', 'inProcess', 'env'];    //As these are dealt with below
     var option;
+    var optionValues;
     if (options.support) {
         files = files.concat(glob([].concat(options.support)));
     }
@@ -29,14 +30,18 @@ var cucumber = function(options) {
     // to use a switch that does not need a value, use null as the value in the options object
     for (option in options) {
         if (excludeOptions.indexOf(option) === -1) {
-            if (option.length === 1) {
-                runOptions.push('-' + option);
-            } else {
-                runOptions.push('--' + option);
-            }
-            if (options[option] !== null) {
-                runOptions.push(options[option]);
-            }
+            optionValues = (options[option] instanceof Array) ? options[option] : [options[option]];
+            optionValues.forEach(function (v) {
+                if (option.length === 1) {
+                    runOptions.push('-' + option);
+                } else {
+                    runOptions.push('--' + option);
+                }
+                if (v !== null) {
+                    runOptions.push(v);
+                }
+
+            });
         }
     }
 
